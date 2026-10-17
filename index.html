@@ -10,3 +10,795 @@
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NICDOM</title>
+<meta name="description" content="NICDOM – Network Information Central Domain.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Unbounded:wght@500;700&family=Vazirmatn:wght@400;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ========== DESIGN TOKENS & BASE ========== */
+:root{--ink:#0b0d12;--sub:#6e7480;--blue:30,107,255;--red:255,42,60;--cool:140,156,186}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:#ffffff}
+body{color:var(--ink);font-family:'Inter','Vazirmatn',system-ui,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;background:#ffffff}
+body.rtl{font-family:'Vazirmatn','Inter',system-ui,sans-serif}
+
+/* Geometric pattern background + soft gloss overlay */
+.geo{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.55}
+.gloss{position:fixed;inset:0;z-index:0;pointer-events:none;background:linear-gradient(125deg,rgba(255,255,255,.85),rgba(255,255,255,0) 30%,rgba(255,255,255,0) 70%,rgba(255,255,255,.5))}
+
+/* Hero section – title in glass frame */
+.hero{position:relative;z-index:1;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.5rem 1.25rem;perspective:900px}
+h1{font-family:'Unbounded',sans-serif;font-weight:700;font-size:clamp(2.2rem,10.5vw,6rem);letter-spacing:-.02em;line-height:1.1;
+ transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .18s ease-out;
+ text-shadow:0 1px 0 #fff,0 2px 0 #f0f0ec,0 3px 0 #e8e8e4,0 4px 0 #e0e0dc,0 22px 28px rgba(20,25,40,.14);
+ background:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.95);border-radius:18px;padding:.35em .55em;
+ -webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3);
+ box-shadow:0 12px 40px rgba(20,25,40,.08),inset 0 1px 1px #fff}
+.rule{width:min(360px,62vw);height:1px;background:rgba(11,13,18,.22);margin:1.6rem 0 1.1rem}
+.sub{color:var(--sub);font-weight:500;font-size:clamp(.72rem,2.3vw,.95rem);letter-spacing:.28em;text-transform:uppercase;line-height:2;padding-left:.28em;font-family:'Inter',sans-serif}
+
+/* Three circular glass lamps – 1cm gap, white base, blue & red accents */
+.lights{display:flex;gap:1cm;align-items:center;margin-top:2.6rem;padding:16px}
+.lamp{width:22px;height:22px;border-radius:50%;position:relative;border:1px solid rgba(255,255,255,.98);padding:0;
+ background:rgba(255,255,255,.78);
+ box-shadow:0 0 0 1px rgba(20,25,40,.07),0 6px 14px rgba(20,25,40,.1),inset 0 1px 2px rgba(255,255,255,.98),inset 0 -5px 8px rgba(20,25,40,.05);
+ -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.lamp::before{content:"";position:absolute;left:4px;top:3px;width:10px;height:6px;border-radius:50%;background:linear-gradient(rgba(255,255,255,.98),rgba(255,255,255,0))}
+.lamp .g{position:absolute;inset:-16px;border-radius:50%;pointer-events:none;opacity:.18}
+.lamp.b{background:rgba(var(--blue),.38)}.lamp.b .g{background:radial-gradient(circle,rgba(var(--blue),.6),transparent 66%);animation:sb 6s ease-in-out infinite}
+.lamp.r{background:rgba(var(--red),.38)}.lamp.r .g{background:radial-gradient(circle,rgba(var(--red),.6),transparent 66%);animation:sb 6s ease-in-out -3s infinite}
+.lamp.w{background:rgba(255,255,255,.82);cursor:pointer}.lamp.w .g{background:radial-gradient(circle,rgba(var(--cool),.55),transparent 66%);animation:sb 6s ease-in-out -1.5s infinite}
+@keyframes sb{0%,100%{opacity:.12}50%{opacity:.55}}
+.lights.on .b .g{animation:fb 2.2s ease-in-out infinite}
+.lights.on .r .g{animation:fb 2.2s ease-in-out -1.1s infinite}
+.lights.on .w .g{animation:fw 2.2s ease-in-out infinite}
+@keyframes fb{0%{opacity:0}5%{opacity:1}12%{opacity:.1}18%{opacity:1}28%{opacity:0}100%{opacity:0}}
+@keyframes fw{0%,28%{opacity:0}36%{opacity:.9}44%{opacity:0}78%{opacity:0}86%{opacity:.9}94%{opacity:0}100%{opacity:0}}
+.tip{position:absolute;left:50%;bottom:calc(100% + 16px);transform:translate(-50%,6px);white-space:nowrap;font:500 .68rem 'Unbounded',sans-serif;letter-spacing:.08em;padding:.45rem .8rem;border-radius:99px;pointer-events:none;opacity:0;transition:.3s;
+ background:rgba(255,255,255,.65);border:1px solid #fff;box-shadow:0 8px 20px rgba(20,25,40,.12);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.tip.show{opacity:1;transform:translate(-50%,0)}
+.hint{position:absolute;bottom:calc(1.2rem + env(safe-area-inset-bottom,0px));width:1px;height:26px;background:linear-gradient(rgba(11,13,18,0),rgba(11,13,18,.25));transition:opacity .4s}
+.scrolled .hint{opacity:0}
+
+/* Language switcher lamps */
+.langs{position:fixed;top:calc(.9rem + env(safe-area-inset-top,0px));right:1rem;z-index:6;display:flex;gap:9px}
+.langs button{width:11px;height:11px;border-radius:50%;border:1px solid rgba(255,255,255,.95);cursor:pointer;padding:0;position:relative;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
+ box-shadow:0 0 0 1px rgba(20,25,40,.1),0 2px 5px rgba(20,25,40,.12),inset 0 1px 1px #fff}
+.langs button[data-l=fa]{background:rgba(255,255,255,.8)}.langs button[data-l=ar]{background:rgba(var(--red),.5)}.langs button[data-l=en]{background:rgba(var(--blue),.5)}
+.langs button.act{box-shadow:0 0 0 1px rgba(20,25,40,.1),0 0 0 4px rgba(20,25,40,.1),inset 0 1px 1px #fff}
+
+/* Game arena */
+.game{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:3rem 1.25rem 9rem}
+.arena{position:relative;aspect-ratio:16/9;border-radius:18px;overflow:hidden;box-shadow:0 20px 50px rgba(20,25,40,.16),0 0 0 1px rgba(20,25,40,.07);
+ background:linear-gradient(180deg,#05070f,#0c1220)}
+.arena canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#cv{transition:opacity .9s;touch-action:pan-y;cursor:crosshair}
+#cv.gone{opacity:0;pointer-events:none}
+.pill{font:inherit;font-weight:600;font-size:.88rem;color:var(--ink);padding:.6rem 1.3rem;border-radius:99px;cursor:pointer;background:rgba(255,255,255,.65);border:1px solid #fff;box-shadow:0 8px 20px rgba(20,25,40,.1),inset 0 1px 1px #fff;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.pill:hover{background:rgba(255,255,255,.9)}.pill:disabled{opacity:.4;cursor:default}
+.msg{margin-top:.8rem;font-size:.92rem;min-height:1.4em}
+.board{margin-top:1.6rem;padding:1.1rem 1.3rem;border-radius:18px;background:rgba(255,255,255,.55);border:1px solid #fff;box-shadow:0 8px 24px rgba(20,25,40,.07);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.board h3{font:500 .8rem 'Unbounded',sans-serif;margin-bottom:.6rem}
+.board ol{list-style:none;font-size:.92rem}.board li{display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid rgba(20,25,40,.07)}
+.board li:first-child{font-weight:600}.board p{margin-top:.6rem;font-size:.82rem;color:var(--sub)}
+#over{margin-top:.9rem;display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+input{font:inherit;color:var(--ink);background:rgba(255,255,255,.7);border:1px solid rgba(20,25,40,.14);border-radius:10px;padding:.6rem .8rem;width:100%}
+[hidden]{display:none!important}
+.stage{position:relative}
+.stage.fs,.stage:fullscreen{position:fixed;inset:0;z-index:60;background:#03050b;display:grid;place-items:center}
+.stage.fs .arena,.stage:fullscreen .arena{width:min(100vw,calc(100vh*16/9));border-radius:0;box-shadow:none}
+.arena{font-family:'Orbitron','Vazirmatn',sans-serif}
+.ctl{position:absolute;top:10px;right:10px;z-index:5;display:flex;gap:8px}
+.gbtn{font:500 .68rem 'Orbitron',sans-serif;color:#eaf2ff;letter-spacing:.06em;padding:.45rem .85rem;border-radius:99px;cursor:pointer;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.gbtn:hover{background:rgba(255,255,255,.22)}
+.dock{position:absolute;left:0;right:0;bottom:12px;z-index:1;display:flex;flex-direction:column;align-items:center;gap:.5rem;padding:0 1rem;pointer-events:none;transition:opacity .3s}
+.dock>*{pointer-events:auto}
+.arena.playing .dock{opacity:0;pointer-events:none}
+.arena.playing .dock>*{pointer-events:none}
+.dock .info{font-size:.7rem;color:#9fb2d6;text-align:center;letter-spacing:.04em}
+.dock .msg{margin:0;min-height:0;color:#fff;font-size:.8rem;text-align:center}
+.dock .pill{background:rgba(255,255,255,.14);color:#eaf2ff;border-color:rgba(255,255,255,.32);font-family:'Orbitron','Vazirmatn',sans-serif;box-shadow:none}
+.dock input{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.3)}
+.dock #over{margin:0;width:min(380px,92%)}
+.welcome{position:absolute;inset:0;z-index:2;display:grid;place-items:center;pointer-events:none;opacity:0;text-align:center;padding:0 1rem;direction:ltr;
+ font:900 clamp(1.1rem,5.2vw,2.7rem) 'Orbitron',sans-serif;letter-spacing:.18em;color:#e8f6ff;text-shadow:0 0 18px rgba(80,200,255,.9),0 0 44px rgba(40,120,255,.7)}
+.welcome.show{animation:wl 3.6s ease forwards}
+@keyframes wl{0%{opacity:0;filter:blur(14px);letter-spacing:.5em;transform:scale(1.08)}22%{opacity:1;filter:blur(0);letter-spacing:.18em;transform:scale(1)}78%{opacity:1}100%{opacity:0;filter:blur(6px)}}
+#cv{z-index:3}
+
+/* Tournament dialog – glass style */
+dialog{margin:auto;border:1px solid #fff;border-radius:22px;background:rgba(255,255,255,.78);color:var(--ink);width:min(92vw,460px);padding:1.4rem;max-height:90vh;overflow:auto;box-shadow:0 30px 70px rgba(20,25,40,.25);-webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px)}
+dialog::backdrop{background:rgba(255,255,255,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+dialog h2{font:700 1.05rem 'Unbounded',sans-serif;margin-bottom:.7rem}
+dialog p{font-size:.9rem;line-height:1.75;margin-bottom:.7rem;color:#2c3039}
+dialog form{display:grid;gap:.6rem;margin:.9rem 0}
+.fee{font-weight:600;color:var(--ink)}
+.note{font-size:.78rem!important;color:var(--sub)!important}
+.row{display:flex;gap:.5rem}
+
+/* Contact – single modern call icon only. Auto-hide after 3s, never over game */
+.contact{position:fixed;left:50%;bottom:calc(2.2rem + env(safe-area-inset-bottom,0px));z-index:5;display:flex;gap:1.1rem;transform:translate(-50%,40px);opacity:0;visibility:hidden;transition:transform .45s cubic-bezier(.2,.8,.2,1),opacity .35s,visibility 0s .45s}
+.contact.show{transform:translate(-50%,0);opacity:1;visibility:visible;transition-delay:0s}
+.contact.hide-game{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
+.ico{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;color:#1a1d24;text-decoration:none;position:relative;overflow:hidden;
+ background:rgba(255,255,255,.62);border:1px solid rgba(255,255,255,.98);
+ box-shadow:0 10px 28px rgba(20,25,40,.12),0 0 0 1px rgba(20,25,40,.05),inset 0 1px 1px #fff,inset 0 -8px 14px rgba(20,25,40,.04);
+ -webkit-backdrop-filter:blur(16px) saturate(1.5);backdrop-filter:blur(16px) saturate(1.5);
+ transition:background .35s,color .35s,box-shadow .35s,transform .25s,border-color .35s}
+.ico svg{width:22px;height:22px;position:relative;z-index:1}
+.ico::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(145deg,rgba(255,255,255,.6),rgba(255,255,255,0) 42%,rgba(255,255,255,.12) 72%);opacity:.75;transition:opacity .35s}
+.ico.near,.ico:focus-visible{background:rgba(6,7,10,.88);color:#fff;border-color:rgba(255,255,255,.22);transform:scale(1.12);
+ box-shadow:0 14px 36px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.38),inset 0 -12px 22px rgba(255,255,255,.05)}
+.ico.near::before,.ico:focus-visible::before{opacity:1;background:linear-gradient(145deg,rgba(255,255,255,.38),rgba(255,255,255,0) 46%,rgba(255,255,255,.08) 74%)}
+.ico:active{transform:scale(.9)}
+.rip{position:absolute;border-radius:50%;background:rgba(255,255,255,.6);width:12px;height:12px;transform:scale(0);animation:rip .55s ease-out forwards;pointer-events:none}
+@keyframes rip{to{transform:scale(10);opacity:0}}
+:focus-visible{outline:2px solid rgb(var(--blue));outline-offset:4px}
+@media(prefers-reduced-motion:reduce){.lamp .g{animation:none!important;opacity:.3}h1{transition:none}}
+</style>
+</head>
+<body>
+<!-- Geometric SVG pattern -->
+<svg class="geo" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+  <defs><pattern id="p" width="120" height="120" patternUnits="userSpaceOnUse">
+    <g fill="none" stroke="#10131a" stroke-width=".4" stroke-linejoin="round" opacity=".07">
+      <g id="s"><rect x="20" y="20" width="80" height="80"/><rect x="20" y="20" width="80" height="80" transform="rotate(45 60 60)"/></g>
+      <g transform="translate(60 60) scale(.5) translate(-60 -60)"><rect x="20" y="20" width="80" height="80"/><rect x="20" y="20" width="80" height="80" transform="rotate(45 60 60)"/></g>
+      <g transform="translate(60 60) scale(.25) translate(-60 -60)"><rect x="20" y="20" width="80" height="80"/><rect x="20" y="20" width="80" height="80" transform="rotate(45 60 60)"/></g>
+      <circle cx="60" cy="60" r="40"/>
+      <use href="#s" transform="translate(-60 -60)"/><use href="#s" transform="translate(60 -60)"/><use href="#s" transform="translate(-60 60)"/><use href="#s" transform="translate(60 60)"/>
+    </g></pattern></defs>
+  <rect width="100%" height="100%" fill="url(#p)"/>
+</svg>
+<div class="gloss"></div>
+
+<!-- Language switcher -->
+<div class="langs" id="langs"><button data-l="fa" aria-label="فارسی"></button><button data-l="ar" aria-label="العربية"></button><button data-l="en" aria-label="English" class="act"></button></div>
+
+<!-- Hero -->
+<section class="hero">
+  <h1 id="ttl">NICDOM</h1>
+  <div class="rule"></div>
+  <p class="sub">Network Information Centeral<br>Domain</p>
+  <div class="lights" id="lights">
+    <span class="lamp b"><i class="g"></i></span>
+    <button class="lamp w" id="lw" aria-label="Tournament"><i class="g"></i><span class="tip" id="tip">Tournament</span></button>
+    <span class="lamp r"><i class="g"></i></span>
+  </div>
+  <div class="hint"></div>
+</section>
+
+<!-- Game section -->
+<section class="game" id="game">
+  <div class="stage" id="stage"><div class="arena" id="arena">
+    <canvas id="gc" width="1280" height="720"></canvas>
+    <div class="dock">
+      <div class="info"><span id="mode"></span> · <span data-t="keys"></span></div>
+      <div class="msg" id="msg" role="status"></div>
+      <div id="over" hidden><input id="pn" maxlength="24" autocomplete="name"><button class="pill" id="sv" data-t="save"></button></div>
+      <button class="pill" id="play" data-t="play"></button>
+    </div>
+    <div class="welcome" id="wl">WELCOME TO GALAXY</div>
+    <canvas id="cv" width="640" height="360"></canvas>
+    <div class="ctl"><button class="gbtn" id="fs" data-t="fs"></button><button class="gbtn" id="fb" data-t="back" hidden></button></div>
+  </div></div>
+  <div class="board"><h3 data-t="board"></h3><ol id="list"></ol><p id="rec"></p></div>
+</section>
+
+<!-- Tournament registration dialog -->
+<dialog id="dlg">
+  <h2 data-t="tTitle"></h2>
+  <p data-t="tInfo"></p><p class="fee" data-t="tFee"></p><p data-t="tHow"></p>
+  <form id="reg">
+    <input id="rn" required data-ph="tName" autocomplete="name">
+    <input id="re" type="email" required data-ph="tEmail" autocomplete="email">
+    <input id="rp" type="tel" required data-ph="tPhone" autocomplete="tel">
+    <label id="rcw" hidden><span data-t="receipt"></span><input id="rc" type="file" accept="image/*"></label>
+    <button type="button" class="pill" id="pay" data-t="tPay"></button>
+    <button class="pill" type="submit" data-t="send"></button>
+  </form>
+  <p class="note" data-t="tNote"></p>
+  <div class="row"><input id="tc" data-ph="tCode" autocomplete="off" style="direction:ltr"><button class="pill" id="ac" data-t="act"></button></div>
+  <p id="dm" class="note" style="margin-top:.6rem"></p>
+  <button class="pill" id="dx" data-t="close" style="margin-top:.4rem"></button>
+</dialog>
+
+<!-- Contact – ONLY call icon (email is mailto only) -->
+<nav class="contact" id="contact" aria-label="Contact">
+  <a class="ico" href="tel:09907396578" aria-label="Call" id="icoCall">
+    <svg fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+    </svg>
+  </a>
+</nav>
+
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)};
+
+/* ================================================================
+   CONFIG
+   ================================================================ */
+var CONFIG={
+  payUrl:"",                    // payment gateway URL (optional)
+  api:"",                       // backend for shared scores + receipt
+  email:"ai.nft.ia@gmail.com",
+  codes:["9559565812c55ece11b98ac263ac0449f2a15eafa9006b94e3d3afd7d68d430a"], // SHA-256 of ticket codes
+  maxPlays:4,                   // 1 game + 3 retries
+  obstacleStart:1000            // distance (m) when obstacles begin
+};
+
+/* ================================================================
+   i18n – English / فارسی / العربية
+   ================================================================ */
+var D={
+en:{tTitle:"GALAXY Tournament",tInfo:"Every registered player enters a draw. Prize: a high-value domain. The highest record is registered under its owner’s name at the end.",tFee:"Entry ticket: 130,000 Toman",tHow:"Pay with the payment link, send your receipt, then enter the ticket code you get by email. You get 1 game plus 3 retries.",tPay:"Pay entry · 130,000 Toman",fs:"Full screen",back:"Back",lvl:"Level",tName:"Full name",tEmail:"Email",tPhone:"Phone number",send:"Send registration",tNote:"Receipts are checked by hand. Nothing here verifies a bank balance automatically.",tCode:"Ticket code",act:"Activate",ok:"Ticket active",bad:"Invalid ticket code",close:"Close",receipt:"Receipt photo",play:"Play",again:"Play again",prac:"Practice · not ranked",rank:"Ranked · {n} plays left",none:"No ranked plays left",rush:"Take your time. Your remaining chances are safe.",over:"Game over",sc:"Score",save:"Save score",saved:"Saved",board:"Scores",rec:"Record",empty:"No scores yet",ob:"Obstacles in {m} m",keys:"Arrows · Space fire · Enter/Backspace depth · Shift nitro",nm:"Your name",sent:"Registration prepared. Send the receipt photo by email to get your ticket code.",time:"Time",nitro:"NITRO",sos:"Speed of Sound",light:"Speed of Light"},
+fa:{tTitle:"تورنومنت GALAXY",tInfo:"همه ثبت‌نام‌کنندگان وارد قرعه‌کشی می‌شوند. جایزه: یک دامین ارزشمند. بالاترین رکورد در پایان به نام صاحبش ثبت می‌شود.",tFee:"بلیت ورود: ۱۳۰٬۰۰۰ تومان",tHow:"با لینک پرداخت، هزینه ورود را بپردازید، رسید را بفرستید و کد بلیتی را که با ایمیل می‌گیرید وارد کنید. یک بازی و سه فرصت مجدد دارید.",tPay:"پرداخت ورودی · ۱۳۰٬۰۰۰ تومان",fs:"تمام‌صفحه",back:"بازگشت",lvl:"مرحله",tName:"نام و نام خانوادگی",tEmail:"ایمیل",tPhone:"شماره تماس",send:"ارسال ثبت‌نام",tNote:"رسیدها دستی بررسی می‌شوند. هیچ بخشی موجودی بانک را خودکار تأیید نمی‌کند.",tCode:"کد بلیت",act:"فعال‌سازی",ok:"بلیت فعال شد",bad:"کد بلیت نامعتبر است",close:"بستن",receipt:"عکس رسید",play:"شروع",again:"بازی دوباره",prac:"تمرین · بدون رتبه",rank:"رتبه‌دار · {n} بازی باقی مانده",none:"بازی رتبه‌دار باقی نمانده",rush:"عجله نکن. فرصت‌های باقی‌مانده‌ات محفوظ است.",over:"پایان بازی",sc:"امتیاز",save:"ثبت امتیاز",saved:"ثبت شد",board:"امتیازات",rec:"رکورد",empty:"هنوز امتیازی ثبت نشده",ob:"موانع تا {m} متر دیگر",keys:"جهت‌ها · اسپیس شلیک · اینتر/بک‌اسپیس عمق · شیفت نیترو",nm:"نام شما",sent:"ثبت‌نام آماده شد. عکس رسید را با ایمیل بفرستید تا کد بلیت بگیرید.",time:"زمان",nitro:"نیترو",sos:"سرعت صوت",light:"سرعت نور"},
+ar:{tTitle:"بطولة GALAXY",tInfo:"يدخل جميع المسجَّلين في السحب. الجائزة: نطاق عالي القيمة. يُسجَّل أعلى رقم قياسي باسم صاحبه في النهاية.",tFee:"تذكرة الدخول: 130٬000 تومان",tHow:"ادفع عبر رابط الدفع، أرسل الإيصال، ثم أدخل رمز التذكرة الذي يصلك بالبريد. لديك لعبة واحدة وثلاث محاولات إضافية.",tPay:"دفع الرسوم · 130٬000 تومان",fs:"ملء الشاشة",back:"رجوع",lvl:"المستوى",tName:"الاسم الكامل",tEmail:"البريد الإلكتروني",tPhone:"رقم الهاتف",send:"إرسال التسجيل",tNote:"تُراجَع الإيصالات يدويًا. لا شيء هنا يتحقق من الرصيد البنكي تلقائيًا.",tCode:"رمز التذكرة",act:"تفعيل",ok:"تم تفعيل التذكرة",bad:"رمز التذكرة غير صالح",close:"إغلاق",receipt:"صورة الإيصال",play:"ابدأ",again:"العب مجددًا",prac:"تدريب · بدون ترتيب",rank:"بترتيب · متبقٍ {n} لعبة",none:"لا توجد محاولات بترتيب",rush:"لا تستعجل. فرصك المتبقية محفوظة.",over:"انتهت اللعبة",sc:"النقاط",save:"حفظ النتيجة",saved:"تم الحفظ",board:"النقاط",rec:"الرقم القياسي",empty:"لا توجد نتائج بعد",ob:"العوائق بعد {m} م",keys:"الأسهم · المسافة إطلاق · إدخال/رجوع عمق · شيفت نيترو",nm:"اسمك",sent:"تم تجهيز التسجيل. أرسل صورة الإيصال بالبريد لتحصل على رمز التذكرة.",time:"الوقت",nitro:"نيترو",sos:"سرعة الصوت",light:"سرعة الضوء"}
+};
+var lang="en";
+function t(k,v){var s=(D[lang][k]||D.en[k]||k);for(var x in v)s=s.replace("{"+x+"}",v[x]);return s}
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+function applyLang(){
+  document.documentElement.lang=lang;
+  document.documentElement.dir=lang==="en"?"ltr":"rtl";
+  document.body.classList.toggle("rtl",lang!=="en");
+  document.querySelectorAll("[data-t]").forEach(function(e){e.textContent=t(e.dataset.t)});
+  document.querySelectorAll("[data-ph]").forEach(function(e){e.placeholder=t(e.dataset.ph)});
+  $("pn").placeholder=t("nm");
+  document.querySelectorAll(".langs button").forEach(function(b){b.classList.toggle("act",b.dataset.l===lang)});
+  uiState();renderBoard();
+}
+$("langs").addEventListener("click",function(e){
+  var b=e.target.closest("button");if(!b)return;
+  lang=b.dataset.l;ls("ng.lang",lang);applyLang();
+});
+
+/* ================================================================
+   AUDIO – Dual short “qezh-qezh” warning + full police siren
+   ================================================================ */
+var lights=$("lights"),lw=$("lw"),AC=window.AudioContext||window.webkitAudioContext,ctx=null,S=null,done=false;
+function unlock(){if(!AC)return;if(!ctx)ctx=new AC();if(ctx.state==="suspended")ctx.resume()}
+["pointerdown","keydown","touchstart","wheel"].forEach(function(e){addEventListener(e,unlock,{passive:true})});
+
+function beep(f,t0,dur,vol,type){
+  if(!ctx)return;
+  var o=ctx.createOscillator(),g=ctx.createGain();
+  o.type=type||"square";o.frequency.value=f;
+  g.gain.setValueAtTime(0,t0);
+  g.gain.linearRampToValueAtTime(vol,t0+.012);
+  g.gain.setValueAtTime(vol,t0+dur*.55);
+  g.gain.linearRampToValueAtTime(0,t0+dur);
+  o.connect(g);g.connect(ctx.destination);
+  o.start(t0);o.stop(t0+dur+.02);
+}
+function sirenStart(dark){
+  lights.classList.add("on");
+  if(!ctx)return;
+  if(ctx.state!=="running"){ctx.resume().then(function(){if(ctx.state==="running"&&!S)sirenStart(dark)});return}
+  var t0=ctx.currentTime+.04;
+  /* Special dual warning beeps – tight gap “qezh-qezh” */
+  beep(980,t0,.09,.18,"sawtooth");
+  beep(720,t0+.11,.09,.16,"sawtooth");
+  beep(980,t0+.28,.09,.17,"sawtooth");
+  beep(720,t0+.39,.09,.15,"sawtooth");
+
+  var s=t0+.7;
+  var m=ctx.createGain(),lp=ctx.createBiquadFilter();
+  m.gain.value=0;lp.type="lowpass";lp.frequency.value=2800;m.connect(lp);lp.connect(ctx.destination);
+  var nodes=[];
+  /* Police dual-tone siren (hi-lo) with short cycle */
+  var hi=dark?880:1100,lo=dark?620:740;
+  var o1=ctx.createOscillator(),o2=ctx.createOscillator();
+  o1.type="sawtooth";o2.type="sawtooth";
+  o1.frequency.setValueAtTime(hi,s);
+  o2.frequency.setValueAtTime(lo,s);
+  var cycle=.55;
+  for(var i=0;i<22;i++){
+    var tt=s+i*cycle;
+    o1.frequency.setValueAtTime(hi,tt);
+    o1.frequency.linearRampToValueAtTime(lo,tt+cycle*.42);
+    o1.frequency.setValueAtTime(hi,tt+cycle*.55);
+    o2.frequency.setValueAtTime(lo,tt);
+    o2.frequency.linearRampToValueAtTime(hi*.92,tt+cycle*.42);
+    o2.frequency.setValueAtTime(lo,tt+cycle*.55);
+  }
+  var g1=ctx.createGain(),g2=ctx.createGain();
+  g1.gain.value=.11;g2.gain.value=.09;
+  o1.connect(g1);g1.connect(m);o2.connect(g2);g2.connect(m);
+  o1.start(s);o2.start(s);nodes.push(o1,o2);
+
+  var gn=m.gain,a=dark?.22:.16;
+  gn.setValueAtTime(0,s);
+  gn.linearRampToValueAtTime(a,s+.9);
+  gn.setValueAtTime(a,s+9.5);
+  gn.linearRampToValueAtTime(0,s+12.2);
+  nodes.forEach(function(n){n.stop(s+12.4)});
+  var tm=setTimeout(function(){S=null;done=true;lights.classList.remove("on")},(s-ctx.currentTime+12.5)*1000);
+  S={dark:dark,stop:function(fast){
+    clearTimeout(tm);var n=ctx.currentTime,d=fast?.1:1.4;
+    var cur=gn.value;gn.cancelScheduledValues(n);gn.setValueAtTime(cur,n);gn.linearRampToValueAtTime(0,n+d);
+    nodes.forEach(function(x){try{x.stop(n+d+.04)}catch(e){}});
+    S=null;setTimeout(function(){if(!S)lights.classList.remove("on")},d*1000)}};
+}
+function dist(el,x,y){var r=el.getBoundingClientRect();return Math.hypot(Math.max(r.left-x,0,x-r.right),Math.max(r.top-y,0,y-r.bottom))}
+var icons=[].slice.call(document.querySelectorAll(".ico"));
+addEventListener("pointermove",function(e){
+  var d=dist(lights,e.clientX,e.clientY);
+  if(d<50){if(!S&&!done)sirenStart(false)}
+  else if(d>120){done=false;if(S&&!S.dark)S.stop();else if(!S)lights.classList.remove("on")}
+  $("tip").classList.toggle("show",dist(lw,e.clientX,e.clientY)<60);
+  icons.forEach(function(el){el.classList.toggle("near",dist(el,e.clientX,e.clientY)<72)});
+  $("ttl").style.setProperty("--ry",((e.clientX/innerWidth-.5)*10)+"deg");
+  $("ttl").style.setProperty("--rx",(-(e.clientY/innerHeight-.5)*8)+"deg");
+},{passive:true});
+
+/* ================================================================
+   CONTACT VISIBILITY
+   - Appear after 3 s idle, disappear after 3 s
+   - Reappear on scroll
+   - Never visible while game section is in view
+   ================================================================ */
+var contact=$("contact"),contactTimer=null;
+function hideContact(){contact.classList.remove("show")}
+function showContact(){
+  if(isGameInView())return;
+  contact.classList.add("show");
+  clearTimeout(contactTimer);
+  contactTimer=setTimeout(hideContact,3000);
+}
+function isGameInView(){
+  var g=$("game");if(!g)return false;
+  var r=g.getBoundingClientRect();
+  return r.top<innerHeight*.65&&r.bottom>innerHeight*.25;
+}
+function updateContact(){
+  if(isGameInView()){contact.classList.add("hide-game");hideContact()}
+  else{contact.classList.remove("hide-game");
+    if((window.scrollY||document.documentElement.scrollTop)>40)showContact()}
+}
+addEventListener("scroll",function(){
+  document.body.classList.toggle("scrolled",(window.scrollY||document.documentElement.scrollTop)>6);
+  updateContact();
+},{passive:true});
+setTimeout(function(){if((window.scrollY||0)<10)showContact()},400);
+updateContact();
+
+icons.forEach(function(el){el.addEventListener("pointerdown",function(e){
+  var r=el.getBoundingClientRect(),d=document.createElement("i");d.className="rip";
+  d.style.left=(e.clientX-r.left-6)+"px";d.style.top=(e.clientY-r.top-6)+"px";
+  el.appendChild(d);setTimeout(function(){d.remove()},600);
+})});
+
+/* ================================================================
+   TOURNAMENT DIALOG
+   ================================================================ */
+var dlg=$("dlg");
+lw.addEventListener("click",function(){
+  unlock();if(S)S.stop(true);sirenStart(true);
+  $("rcw").hidden=!CONFIG.api;$("dm").textContent="";dlg.showModal();
+});
+$("dx").onclick=function(){dlg.close();if(S)S.stop()};
+dlg.addEventListener("close",function(){if(S)S.stop()});
+$("pay").onclick=function(){
+  if(CONFIG.payUrl){window.open(CONFIG.payUrl,"_blank","noopener");return}
+  location.href="mailto:"+CONFIG.email+"?subject="+encodeURIComponent("GALAXY Tournament payment link")+"&body="+encodeURIComponent("Please send me the payment link for the 130,000 Toman entry ticket.\nName: "+$("rn").value+"\nPhone: "+$("rp").value);
+};
+$("reg").onsubmit=function(e){
+  e.preventDefault();
+  var n=$("rn").value,m=$("re").value,p=$("rp").value;
+  if(CONFIG.api){
+    var f=new FormData();f.append("name",n);f.append("email",m);f.append("phone",p);
+    if($("rc").files[0])f.append("receipt",$("rc").files[0]);
+    fetch(CONFIG.api+"/register",{method:"POST",body:f}).catch(function(){});
+  }else{
+    location.href="mailto:"+CONFIG.email+"?subject="+encodeURIComponent("GALAXY Tournament registration")+"&body="+encodeURIComponent("Name: "+n+"\nEmail: "+m+"\nPhone: "+p+"\nFee: 130,000 Toman\n\n(Attach the receipt photo)");
+  }
+  $("dm").textContent=t("sent");
+};
+function sha(s){return crypto.subtle.digest("SHA-256",new TextEncoder().encode(s.trim())).then(function(b){return [].map.call(new Uint8Array(b),function(x){return("0"+x.toString(16)).slice(-2)}).join("")})}
+$("ac").onclick=function(){
+  sha($("tc").value).then(function(h){
+    if(CONFIG.codes.indexOf(h)>-1){ls("ng.tk",h);$("dm").textContent=t("ok");uiState()}
+    else $("dm").textContent=t("bad");
+  });
+};
+
+/* ================================================================
+   SCRATCH REVEAL overlay
+   ================================================================ */
+var cv=$("cv"),cx=cv.getContext("2d"),cells={},ncell=0,revealed=false;
+function paintCover(){
+  var g=cx.createLinearGradient(0,0,640,360);g.addColorStop(0,"#f8f8f4");g.addColorStop(1,"#e8e8e2");
+  cx.fillStyle=g;cx.fillRect(0,0,640,360);
+  cx.strokeStyle="rgba(16,19,26,.06)";for(var i=0;i<640;i+=32){cx.beginPath();cx.moveTo(i,0);cx.lineTo(i+90,360);cx.stroke()}
+  cx.fillStyle="rgba(11,13,18,.82)";cx.font="700 62px Unbounded,sans-serif";cx.textAlign="center";cx.textBaseline="middle";cx.fillText("GALAXY",320,180);
+}
+function scratch(e,r){
+  if(revealed)return;
+  var b=cv.getBoundingClientRect(),x=(e.clientX-b.left)*640/b.width,y=(e.clientY-b.top)*360/b.height;
+  cx.globalCompositeOperation="destination-out";cx.beginPath();cx.arc(x,y,r,0,7);cx.fill();cx.globalCompositeOperation="source-over";
+  var k=(x/40|0)+"_"+(y/40|0);if(!cells[k]){cells[k]=1;if(++ncell>=22)reveal()}
+}
+function reveal(w){revealed=true;cv.classList.add("gone");if(w!==false){var e=$("wl");e.classList.remove("show");void e.offsetWidth;e.classList.add("show")}}
+cv.addEventListener("pointermove",function(e){scratch(e,24)});
+cv.addEventListener("pointerdown",function(e){scratch(e,80)});
+paintCover();
+
+/* ================================================================
+   FULLSCREEN
+   ================================================================ */
+var stage=$("stage");
+function fsSync(){var on=document.fullscreenElement===stage||stage.classList.contains("fs");$("fs").hidden=on;$("fb").hidden=!on}
+$("fs").onclick=function(){
+  if(stage.requestFullscreen){stage.requestFullscreen().catch(function(){stage.classList.add("fs");fsSync()})}
+  else{stage.classList.add("fs");fsSync()}
+};
+$("fb").onclick=function(){if(document.fullscreenElement)document.exitFullscreen();stage.classList.remove("fs");fsSync()};
+document.addEventListener("fullscreenchange",function(){stage.classList.remove("fs");fsSync()});
+addEventListener("keydown",function(e){if(e.key==="Escape"&&stage.classList.contains("fs")){stage.classList.remove("fs");fsSync()}});
+
+/* ================================================================
+   COUNTRY FLAGS POOL
+   – Each enemy gets a unique flag. Passed enemies remove their flag
+     from the pool so the same flag is never seen again until reset.
+   ================================================================ */
+var ALL_FLAGS=["🇺🇸","🇨🇳","🇷🇺","🇬🇧","🇫🇷","🇩🇪","🇯🇵","🇰🇷","🇮🇳","🇧🇷","🇮🇷","🇹🇷","🇸🇦","🇦🇪","🇪🇬","🇵🇰","🇮🇱","🇺🇦","🇨🇦","🇦🇺","🇮🇹","🇪🇸","🇲🇽","🇮🇩","🇻🇳","🇹🇭","🇵🇱","🇳🇱","🇸🇪","🇳🇴","🇫🇮","🇨🇭","🇦🇹","🇧🇪","🇵🇹","🇬🇷","🇦🇷","🇨🇱","🇨🇴","🇵🇪","🇿🇦","🇳🇬","🇰🇪","🇪🇹","🇲🇦","🇩🇿","🇹🇳","🇮🇶","🇸🇾","🇱🇧","🇯🇴","🇰🇼","🇶🇦","🇧🇭","🇴🇲","🇾🇪","🇦🇫","🇺🇿","🇰🇿","🇦🇿","🇦🇲","🇬🇪","🇨🇺","🇻🇪","🇧🇴","🇪🇨","🇵🇾","🇺🇾","🇵🇦","🇨🇷","🇬🇹","🇭🇳","🇸🇻","🇳🇮","🇩🇴","🇭🇹","🇯🇲","🇹🇹","🇧🇸","🇧🇧","🇧🇿","🇬🇾","🇸🇷","🇫🇯","🇵🇬","🇳🇿","🇸🇬","🇲🇾","🇵🇭","🇰🇭","🇱🇦","🇲🇲","🇧🇩","🇱🇰","🇳🇵","🇧🇹","🇲🇻","🇲🇳","🇰🇵","🇹🇼","🇭🇰","🇲🇴"];
+var usedFlags={};
+
+/* ================================================================
+   GAME CORE
+   ================================================================ */
+var gc=$("gc"),g=gc.getContext("2d"),W=640,H=360,keys={},G=null,last=0,B=[];
+g.scale(2,2); // internal resolution 1280×720 rendered at 640×360 logical
+
+function ranked(){return ls("ng.tk")&&CONFIG.codes.indexOf(ls("ng.tk"))>-1}
+function plays(){return +ls("ng.plays")||0}
+function uiState(){
+  var r=ranked(),left=CONFIG.maxPlays-plays();
+  $("mode").textContent=r?(left>0?t("rank",{n:left}):t("none")):t("prac");
+  $("play").textContent=G&&G.over?t("again"):t("play");
+  $("play").disabled=!!(G&&!G.over);
+  $("arena").classList.toggle("playing",!!(G&&!G.over));
+}
+function rnd(a,b){return a+Math.random()*(b-a)}
+
+/* Base speed increases with time; nitro ×2.4; L≥8 Speed-of-Sound; L≥12 Speed-of-Light */
+function baseSpeed(){return Math.min(10+.22*G.t,55)}
+function speed(){
+  var s=baseSpeed();
+  if(G.nitro>0)s*=2.4;
+  if(G.L>=12)s*=3.2;
+  else if(G.L>=8)s*=1.8;
+  return s;
+}
+function shown(){return Math.round(speed()*(1+40*Math.min(G.d/250,1)))}
+
+/* Create a fresh game state */
+function mk(r){
+  usedFlags={};
+  return {
+    ranked:r, t:0, d:0, k:0,          // time, distance, kills
+    x:90, y:H/2,                      // player position
+    b:[], o:[], e:[], eb:[], pt:[],   // bullets, obstacles, enemies, enemy bullets, particles
+    sp:0, es:2, cd:0,                 // spawn timers, fire cooldown
+    hp:3, inv:0, sh:0,                // health, invulnerability, screen shake
+    L:0, ban:0, rush:0, over:false,   // level, level banner timer, first-play rush message
+    st:[],                            // starfield
+    timeLeft:120,                     // MAIN TIMER – reduce to 0 = win
+    depth:0,                          // 0..1 depth mode (Enter / Backspace)
+    nitro:0, nitroCd:0,               // nitro duration & cooldown
+    helis:[], jets:[]                 // level-12 support units
+  };
+}
+function start(){
+  if(!revealed)reveal(false);
+  var r=ranked(),p=plays();
+  if(r&&p>=CONFIG.maxPlays){$("msg").textContent=t("none");return}
+  if(r)ls("ng.plays",p+1);
+  $("msg").textContent="";$("over").hidden=true;
+  G=mk(r);G.rush=(r&&p===1)?4.5:0;
+  uiState();last=performance.now();requestAnimationFrame(loop);
+}
+
+/* Score formula: time reduced toward zero + kills + distance
+   Winner condition: timeLeft reaches exactly 0 */
+function score(){return Math.floor((120-Math.max(0,G.timeLeft))*12)+G.k*8+Math.floor(G.d)*2}
+
+/* Level thresholds by distance */
+function lvl(){
+  var d=G.d;
+  return d<CONFIG.obstacleStart?0:
+         d<1600?1:d<2100?2:d<2500?3:d<2900?4:d<3300?5:d<3700?6:
+         d<4100?7:d<4500?8:d<4900?9:d<5400?10:d<6000?11:12;
+}
+function boom(x,y,c){for(var i=0;i<14;i++){var a=rnd(0,6.3),s=rnd(50,180);G.pt.push({x:x,y:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:.55,c:c})}}
+function hurt(){if(G.inv>0)return;G.hp--;G.inv=1.5;G.sh=.4;boom(G.x,G.y,"#ff8a8a");if(G.hp<=0)G.over=true}
+
+function pickFlag(){
+  var avail=ALL_FLAGS.filter(function(f){return!usedFlags[f]});
+  if(!avail.length){usedFlags={};avail=ALL_FLAGS.slice()}
+  var f=avail[Math.floor(Math.random()*avail.length)];
+  usedFlags[f]=1;return f;
+}
+function spawnEnemy(L){
+  var q=Math.random();
+  var ty=L<=1?0:L<=3?(q<.45?0:1):L<=7?(q<.25?0:q<.65?1:2):(q<.15?0:q<.45?1:2);
+  var P=[{hp:1,r:12,vx:75,am:36},{hp:3,r:14,vx:58,am:24},{hp:6,r:18,vx:42,am:14}][ty];
+  var y0=rnd(48,H-48);
+  G.e.push({ty:ty,hp:P.hp,r:P.r,vx:P.vx,am:P.am,x:W+28,y:y0,y0:y0,t:0,f:rnd(.7,1.5),flag:pickFlag(),split:false,z:1});
+}
+
+/* ---------- MAIN SIMULATION STEP ---------- */
+function step(dt){
+  var v=speed(),scr=v*6.2;
+  G.t+=dt;G.d+=v*dt;G.inv-=dt;G.sh-=dt;G.ban-=dt;G.rush-=dt;G.nitro-=dt;G.nitroCd-=dt;
+  if(G.timeLeft>0)G.timeLeft-=dt;
+  if(G.timeLeft<=0){G.timeLeft=0;G.over=true} // WIN condition
+
+  var L=lvl();if(L!==G.L){G.L=L;G.ban=2.2}
+
+  /* Player movement */
+  var dx=(keys.ArrowRight?1:0)-(keys.ArrowLeft?1:0);
+  var dy=(keys.ArrowDown?1:0)-(keys.ArrowUp?1:0);
+  G.x=Math.max(16,Math.min(W-16,G.x+dx*240*dt));
+  G.y=Math.max(14,Math.min(H-14,G.y+dy*240*dt));
+
+  /* Depth mode: Enter deepens, Backspace returns */
+  if(keys.Enter)G.depth=Math.min(1,G.depth+dt*.7);
+  if(keys.Backspace)G.depth=Math.max(0,G.depth-dt*.9);
+
+  /* Nitro (Shift) – 2.8 s duration, 7 s cooldown */
+  if((keys.ShiftLeft||keys.ShiftRight)&&G.nitroCd<=0&&G.nitro<=0){G.nitro=2.8;G.nitroCd=7}
+
+  /* Shooting */
+  G.cd-=dt;
+  if(keys.Space&&G.cd<=0){G.b.push({x:G.x+14,y:G.y,z:1});G.cd=.18}
+  G.b.forEach(function(b){b.x+=580*dt});
+  G.b=G.b.filter(function(b){return b.x<W+12});
+
+  /* Starfield scroll */
+  G.st.forEach(function(s){s.x-=scr*s.z*dt;if(s.x<0){s.x=W;s.y=rnd(0,H)}});
+
+  /* Obstacles spawn after obstacleStart metres; depth pulls them faster */
+  if(G.d>=CONFIG.obstacleStart){
+    G.sp-=dt;
+    if(G.sp<=0){
+      G.sp=Math.max(.45,1.4-(G.d-CONFIG.obstacleStart)/4800)*rnd(.65,1.25);
+      var r=rnd(10,24),pts=[];for(var i=0;i<9;i++)pts.push(rnd(.72,1.12));
+      G.o.push({x:W+32,y:rnd(22,H-22),r:r,ex:rnd(0,38),pts:pts,a:rnd(0,6),z:1-G.depth*.35});
+    }
+  }
+
+  /* Enemies */
+  if(L>=1){
+    G.es-=dt;
+    if(G.es<=0){
+      G.es=[0,2.6,2.0,1.5,1.15,1.0,.9,.8,.7,.65,.6,.55,.5][Math.min(L,12)]*rnd(.75,1.2);
+      spawnEnemy(L);
+    }
+  }
+
+  /* Level 12 support: F-23 jets + rescue helicopters */
+  if(L>=12){
+    if(Math.random()<.012)G.jets.push({x:-40,y:rnd(40,H-40),vx:320,life:4.5,side:1});
+    if(Math.random()<.008)G.helis.push({x:W+30,y:rnd(30,H-30),vx:-180,life:5,rot:0});
+  }
+
+  /* Move obstacles toward depth */
+  G.o.forEach(function(o){
+    o.x-=(scr+o.ex)*dt*(1+G.depth*.4);
+    o.a+=dt;o.z=Math.max(.4,o.z-G.depth*dt*.15);
+  });
+  G.o=G.o.filter(function(o){return o.x>-50});
+
+  /* Move / fire enemies */
+  G.e.forEach(function(e){
+    e.t+=dt;
+    if(e.ty===0||e.t<8){if(e.ty===0||e.x>W*.6)e.x-=(e.vx+scr*.35)*dt*(1+G.depth*.3)}else e.x+=100*dt;
+    e.y=e.y0+Math.sin(e.t*2.1)*e.am;
+    e.z=Math.max(.5,1-G.depth*.4);
+    if(e.ty>0&&e.x<W-16&&e.t<8){
+      e.f-=dt;
+      if(e.f<=0){
+        e.f=(e.ty===1?1.7:2.3)*(L>=4?.75:1);
+        var a=Math.atan2(G.y-e.y,G.x-e.x),n=e.ty===2?3:1;
+        for(var i=0;i<n;i++){var aa=a+(n>1?(i-1)*.26:0);G.eb.push({x:e.x,y:e.y,vx:Math.cos(aa)*200,vy:Math.sin(aa)*200})}
+      }
+    }
+  });
+  G.e=G.e.filter(function(e){
+    if(e.x<-50||(e.t>8&&e.ty>0&&e.x>W+50)){if(e.flag)delete usedFlags[e.flag];return false}
+    return true;
+  });
+
+  G.eb.forEach(function(b){b.x+=b.vx*dt;b.y+=b.vy*dt});
+  G.eb=G.eb.filter(function(b){return b.x>-12&&b.x<W+12&&b.y>-12&&b.y<H+12});
+  G.pt.forEach(function(p){p.x+=p.vx*dt;p.y+=p.vy*dt;p.l-=dt});
+  G.pt=G.pt.filter(function(p){return p.l>0});
+  G.jets.forEach(function(j){j.x+=j.vx*dt;j.life-=dt});
+  G.jets=G.jets.filter(function(j){return j.life>0&&j.x<W+60});
+  G.helis.forEach(function(h){h.x+=h.vx*dt;h.rot+=dt*4;h.life-=dt});
+  G.helis=G.helis.filter(function(h){return h.life>0&&h.x>-60});
+
+  /* Collisions – hitting obstacles/enemies REDUCES timeLeft */
+  G.b.forEach(function(b){
+    G.o.forEach(function(o){
+      if(!o.dead&&!b.dead&&Math.hypot(b.x-o.x,b.y-o.y)<o.r+4){
+        o.dead=b.dead=1;G.k++;G.timeLeft=Math.max(0,G.timeLeft-1.8);boom(o.x,o.y,"#9fb2d6");
+      }
+    });
+    G.e.forEach(function(e){
+      if(!e.dead&&!b.dead&&Math.hypot(b.x-e.x,b.y-e.y)<e.r+4){
+        b.dead=1;e.hp--;boom(b.x,b.y,"#6fe3ff");
+        if(e.hp<=0){
+          e.dead=1;G.k++;G.timeLeft=Math.max(0,G.timeLeft-2.6);boom(e.x,e.y,"#ffb36b");
+          /* Split into two smaller enemies (once) */
+          if(!e.split&&e.ty>0){
+            for(var s=0;s<2;s++){
+              G.e.push({ty:0,hp:1,r:e.r*.55,vx:e.vx*1.3,am:e.am*.6,x:e.x,y:e.y+(s?12:-12),y0:e.y+(s?12:-12),t:0,f:1,flag:pickFlag(),split:true,z:e.z});
+            }
+          }
+        }
+      }
+    });
+  });
+  G.o.forEach(function(o){if(!o.dead&&Math.hypot(G.x-o.x,G.y-o.y)<o.r*.88+9){o.dead=1;hurt()}});
+  G.e.forEach(function(e){if(!e.dead&&Math.hypot(G.x-e.x,G.y-e.y)<e.r+8){e.dead=1;hurt()}});
+  G.eb=G.eb.filter(function(b){if(Math.hypot(G.x-b.x,G.y-b.y)<9){hurt();return false}return true});
+  G.o=G.o.filter(function(o){return!o.dead});
+  G.e=G.e.filter(function(e){return!e.dead});
+  G.b=G.b.filter(function(b){return!b.dead});
+}
+
+/* ---------- DRAW HELPERS ---------- */
+function drawFlag(x,y,flag,sc){
+  g.save();g.translate(x,y);g.scale(sc||1,sc||1);
+  g.font="14px sans-serif";g.textAlign="center";g.textBaseline="middle";g.fillText(flag,0,0);g.restore();
+}
+function drawF23(x,y,dir){ // simplified F-23 silhouette
+  g.save();g.translate(x,y);if(dir<0)g.scale(-1,1);
+  g.fillStyle="#c8d4e8";g.strokeStyle="#8aa0c0";g.lineWidth=1.2;
+  g.beginPath();g.moveTo(22,0);g.lineTo(-8,-7);g.lineTo(-14,-2);g.lineTo(-18,0);g.lineTo(-14,2);g.lineTo(-8,7);g.closePath();g.fill();g.stroke();
+  g.fillStyle="#6a8ab8";g.fillRect(-6,-1.5,10,3);
+  g.fillStyle="#e8f0ff";g.beginPath();g.moveTo(18,-1);g.lineTo(22,0);g.lineTo(18,1);g.closePath();g.fill();
+  g.restore();
+}
+function drawHeli(x,y,rot){
+  g.save();g.translate(x,y);
+  g.fillStyle="#a8b8c8";g.strokeStyle="#708090";g.lineWidth=1;
+  g.beginPath();g.ellipse(0,0,10,5,0,0,7);g.fill();g.stroke();
+  g.strokeStyle="#d0d8e0";g.lineWidth=1.5;
+  g.beginPath();g.moveTo(-14*Math.cos(rot),-14*Math.sin(rot));g.lineTo(14*Math.cos(rot),14*Math.sin(rot));g.stroke();
+  g.beginPath();g.moveTo(-10*Math.cos(rot+1.57),-10*Math.sin(rot+1.57));g.lineTo(10*Math.cos(rot+1.57),10*Math.sin(rot+1.57));g.stroke();
+  g.restore();
+}
+
+/* ---------- RENDER FRAME ---------- */
+function draw(){
+  var F=" Orbitron,Vazirmatn,sans-serif";
+  g.save();if(G.sh>0)g.translate(rnd(-4,4),rnd(-4,4));
+  var bg=g.createLinearGradient(0,0,0,H);bg.addColorStop(0,"#04060e");bg.addColorStop(1,"#0e1628");
+  g.fillStyle=bg;g.fillRect(-6,-6,W+12,H+12);
+  if(G.depth>0.05){g.fillStyle="rgba(5,8,18,"+(G.depth*.35)+")";g.fillRect(0,0,W,H)}
+
+  /* Stars */
+  g.fillStyle="#fff";G.st.forEach(function(s){g.globalAlpha=s.z*(1-G.depth*.3);g.fillRect(s.x,s.y,s.z*2.1,s.z*2.1)});g.globalAlpha=1;
+
+  /* Obstacles */
+  g.strokeStyle="#9fb2d6";g.fillStyle="#1a2338";g.lineWidth=1.5;
+  G.o.forEach(function(o){
+    g.save();g.globalAlpha=Math.max(.4,o.z||1);g.translate(o.x,o.y);g.scale(o.z||1,o.z||1);
+    g.beginPath();o.pts.forEach(function(p,i){var a=o.a+i*Math.PI*2/9;g[i?"lineTo":"moveTo"](Math.cos(a)*o.r*p,Math.sin(a)*o.r*p)});g.closePath();g.fill();g.stroke();
+    g.restore();
+  });
+
+  /* Enemies + flags */
+  G.e.forEach(function(e){
+    var c=["#ff5a6e","#ffa24a","#b57bff"][e.ty],r=e.r*(e.z||1);
+    g.save();g.translate(e.x,e.y);g.globalAlpha=Math.max(.5,e.z||1);g.lineWidth=1.7;g.strokeStyle=c;g.fillStyle="rgba(10,14,28,.92)";g.beginPath();
+    if(e.ty===0){g.moveTo(-r,0);g.lineTo(r,-r*.8);g.lineTo(r*.4,0);g.lineTo(r,r*.8)}
+    else if(e.ty===1){g.moveTo(-r,0);g.lineTo(0,-r);g.lineTo(r,-r*.5);g.lineTo(r*.3,0);g.lineTo(r,r*.5);g.lineTo(0,r)}
+    else{for(var i=0;i<6;i++){var a=i*Math.PI/3;g[i?"lineTo":"moveTo"](Math.cos(a)*r,Math.sin(a)*r)}}
+    g.closePath();g.fill();g.stroke();g.fillStyle=c;g.fillRect(-3,-2,6,4);g.restore();
+    if(e.flag)drawFlag(e.x,e.y-e.r-10,e.flag,.9*(e.z||1));
+    if(e.ty>0){g.fillStyle="rgba(255,255,255,.25)";g.fillRect(e.x-12,e.y-r-8,24,3);g.fillStyle=c;g.fillRect(e.x-12,e.y-r-8,24*e.hp/[1,3,6][e.ty],3)}
+  });
+
+  /* Enemy bullets, player bullets, particles */
+  g.fillStyle="#ff6a4a";G.eb.forEach(function(b){g.beginPath();g.arc(b.x,b.y,3,0,7);g.fill()});
+  g.fillStyle="#6fe3ff";G.b.forEach(function(b){g.fillRect(b.x,b.y-1.5,12,3)});
+  G.pt.forEach(function(p){g.globalAlpha=Math.max(0,p.l/.55);g.fillStyle=p.c;g.fillRect(p.x,p.y,3,3)});g.globalAlpha=1;
+
+  /* Level-12 units */
+  G.jets.forEach(function(j){drawF23(j.x,j.y,1)});
+  G.helis.forEach(function(h){drawHeli(h.x,h.y,h.rot)});
+
+  /* Player ship */
+  if(!(G.inv>0&&Math.floor(G.t*12)%2)){
+    var x=G.x,y=G.y,sp=G.t*40;g.strokeStyle="#e8eefc";g.lineWidth=2;
+    [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(q){
+      var rx=x+q[0]*13,ry=y+q[1]*10;
+      g.beginPath();g.moveTo(x,y);g.lineTo(rx,ry);g.stroke();
+      g.save();g.translate(rx,ry);g.rotate(sp);g.fillStyle="rgba(159,224,255,.78)";g.fillRect(-6,-1,12,2);g.restore();
+    });
+    g.fillStyle="#fff";g.beginPath();g.arc(x,y,5.5,0,7);g.fill();
+    g.fillStyle="#2a8bff";g.fillRect(x+2,y-1.5,5,3);
+    if(G.nitro>0){g.strokeStyle="rgba(80,200,255,.7)";g.lineWidth=2;g.beginPath();g.arc(x,y,11,0,7);g.stroke()}
+  }
+  if(G.inv>1.1){g.fillStyle="rgba(255,60,80,.18)";g.fillRect(0,0,W,H)}
+  g.restore();
+
+  /* HUD */
+  g.fillStyle="#fff";g.font="500 11px"+F;g.textAlign="left";g.textBaseline="top";
+  g.fillText(t("sc")+" "+score(),12,10);
+  g.fillText(Math.floor(G.d)+" "+(lang==="en"?"m":lang==="fa"?"متر":"م"),12,28);
+  g.fillText(t("time")+" "+G.timeLeft.toFixed(1)+"s",12,46);
+  g.textAlign="right";g.fillText(shown()+" km/h",W-12,10);
+  if(G.L>0)g.fillText(t("lvl")+" "+G.L,W-12,28);
+  if(G.L>=12)g.fillText(t("light"),W-12,46);
+  else if(G.L>=8)g.fillText(t("sos"),W-12,46);
+  if(G.nitro>0){g.fillStyle="#5cf";g.fillText(t("nitro"),W-12,64)}
+  g.textAlign="left";for(var i=0;i<3;i++){g.fillStyle=i<G.hp?"#ff5a6e":"rgba(255,255,255,.2)";g.fillText("♥",W/2-26+i*18,10)}
+  g.textAlign="center";
+  if(G.d<CONFIG.obstacleStart){g.fillStyle="rgba(255,255,255,.6)";g.fillText(t("ob",{m:Math.ceil(CONFIG.obstacleStart-G.d)}),W/2,H-22)}
+  if(G.rush>0){g.fillStyle="rgba(255,255,255,.85)";g.fillText(t("rush"),W/2,34)}
+  if(G.ban>0){g.globalAlpha=Math.min(1,G.ban);g.fillStyle="#fff";g.font="900 26px"+F;g.textBaseline="middle";g.fillText(t("lvl")+" "+G.L,W/2,H/2-30);g.globalAlpha=1}
+  if(G.depth>0.15){g.fillStyle="rgba(160,200,255,.35)";g.font="500 10px"+F;g.fillText("DEPTH "+(G.depth*100|0)+"%",W/2,H-8)}
+}
+
+/* Game loop */
+function loop(now){
+  if(!G||G.over){if(G&&G.over)finish();return}
+  var dt=Math.min(.05,(now-last)/1000);last=now;step(dt);draw();
+  if(G.over){draw();finish();return}
+  requestAnimationFrame(loop);
+}
+function finish(){
+  var s=score();
+  $("msg").textContent=t("over")+" · "+t("sc")+" "+s+(G.timeLeft<=0?" ★":"");
+  uiState();
+  if(G.ranked){$("over").hidden=false;$("pn").value=ls("ng.name")||$("rn").value||""}
+}
+$("play").onclick=start;
+$("sv").onclick=function(){
+  var n=$("pn").value.trim();if(!n||!G)return;ls("ng.name",n);
+  var e={n:n.slice(0,24),s:score()};B.push(e);B.sort(function(a,b){return b.s-a.s});B=B.slice(0,50);ls("ng.board",JSON.stringify(B));
+  if(CONFIG.api)fetch(CONFIG.api+"/scores",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(e)}).catch(function(){});
+  $("over").hidden=true;$("msg").textContent=t("saved");renderBoard();
+};
+function renderBoard(){
+  var l=$("list");l.innerHTML="";
+  if(!B.length){$("rec").textContent=t("empty");return}
+  B.slice(0,5).forEach(function(e){var li=document.createElement("li"),a=document.createElement("span"),b=document.createElement("span");a.textContent=e.n;b.textContent=e.s;li.appendChild(a);li.appendChild(b);l.appendChild(li)});
+  $("rec").textContent=t("rec")+": "+B[0].n+" · "+B[0].s;
+}
+function loadBoard(){
+  try{B=JSON.parse(ls("ng.board")||"[]")}catch(e){B=[]}
+  if(CONFIG.api)fetch(CONFIG.api+"/scores").then(function(r){return r.json()}).then(function(a){B=a;renderBoard()}).catch(function(){});
+}
+
+/* Input */
+addEventListener("keydown",function(e){
+  if(e.target.tagName==="INPUT"||!G||G.over)return;
+  var codes=["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Space","Enter","Backspace","ShiftLeft","ShiftRight"];
+  if(codes.indexOf(e.code)>-1){e.preventDefault();keys[e.code]=1}
+});
+addEventListener("keyup",function(e){keys[e.code]=0});
+
+/* Boot */
+G=null;
+var sl=ls("ng.lang");if(D[sl])lang=sl;
+loadBoard();applyLang();
+G=mk(false);draw();G=null; // idle preview frame
+uiState();
+})();
+</script>
+</body>
+</html>
